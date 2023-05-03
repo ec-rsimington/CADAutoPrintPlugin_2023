@@ -66,8 +66,6 @@ namespace CADAutoPrintPlugin_2023
             public string ProductionName { get => _productionname; set => _productionname = value; }
             public string ProductionUUID { get => _productionUUID; set => _productionUUID = value; }
 
-            public event EventHandler userBtnCancel_Click;
-
             [CommandMethod("CADPrint")]
             public void StartPrint()
             {
