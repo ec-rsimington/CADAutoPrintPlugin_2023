@@ -350,7 +350,7 @@ namespace CADAutoPrintPlugin_2023
                                     bomItem.StockNumber = "";
                                     bomItem.Qty = Convert.ToInt32(Convert.ToDouble(strWords[4].ToString()));
                                     bomItem.CompType = strWords[0].ToString();
-                                    bomItem.BoMFinish = strWords[7].ToString();
+                                    bomItem.BoMFinish = strWords.Count() > 7 ? strWords[7].ToString() : "";
                                     bomItem.FinishID = 0;
                                     bomItem.StockName = "";
                                     bomItem.Usage = "";
