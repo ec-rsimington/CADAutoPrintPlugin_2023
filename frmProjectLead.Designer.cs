@@ -121,5 +121,5 @@ namespace CADAutoPrintPlugin_2023
         private System.Windows.Forms.Button btnDone;
         private System.Windows.Forms.Button btnCancel;
             private System.Windows.Forms.CheckBox chkMnfgPrint;
-      }
+            }
 }

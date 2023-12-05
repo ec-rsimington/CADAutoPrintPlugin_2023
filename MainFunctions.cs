@@ -28,15 +28,16 @@ using Formatting = Newtonsoft.Json.Formatting;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 using static Autodesk.AutoCAD.LayerManager.LayerFilter;
 using DialogResult = System.Windows.Forms.DialogResult;
+using PdfSharp.Drawing.BarCodes;
 //using System.Web.UI;
 
 // Not necessary but improves performance
 [assembly: CommandClass(typeof(CADAutoPrintPlugin_2023.MainFunctions))]
 
 namespace CADAutoPrintPlugin_2023
-{
-      public class MainFunctions
       {
+      public class MainFunctions
+            {
             // Explicit declaration of variables
             //Application acadApp = (Application)Autodesk.AutoCAD.ApplicationServices.Application.AcadApplication;
             Document acadDoc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
@@ -68,7 +69,7 @@ namespace CADAutoPrintPlugin_2023
 
             [CommandMethod("CADPrint")]
             public void StartPrint()
-            {
+                  {
                   StrProjLead = "";
                   var projForm = new frmProjectLead();
                   projForm.ShowDialog();
@@ -83,20 +84,20 @@ namespace CADAutoPrintPlugin_2023
                   //}
                   //else
                   //{
-                        IsMnfgPrint = projForm.IsMnfgPrint;
+                  IsMnfgPrint = projForm.IsMnfgPrint;
 
-                        if (!IsMnfgPrint)
+                  if (!IsMnfgPrint)
                         {
-                              StrProjLead = projForm.ProjectLead;
-                              SelectPrintFile();
+                        StrProjLead = projForm.ProjectLead;
+                        SelectPrintFile();
                         }
-                        else
+                  else
                         {
-                              ProdNum = projForm.ProductionNumber;
-                              SelectProjectProduction();
+                        ProdNum = projForm.ProductionNumber;
+                        SelectProjectProduction();
                         }
                   //}
-            }
+                  }
 
             //void UserBtnCancel_Click(object sender, EventArgs e)
             //{
@@ -104,16 +105,16 @@ namespace CADAutoPrintPlugin_2023
             //}
 
             public void SelectPrintFile()
-            {
+                  {
                   var printListForm = new frmGetPrintList();
                   printListForm.ShowDialog();
                   printFilePath = printListForm.LookupPath;
 
                   SelectSearchPaths();
-            }
+                  }
 
             public void SelectProjectProduction()
-            {
+                  {
                   var projProdForm = new frmProjProdPrint();
                   projProdForm.ShowDialog();
 
@@ -123,59 +124,59 @@ namespace CADAutoPrintPlugin_2023
                   ProductionUUID = projProdForm.ProductionUUID;
 
                   SelectDrawings();
-            }
+                  }
 
             public void SelectSearchPaths()
-            {
+                  {
                   var searchPathsForm = new frmSearchFolders();
                   searchPathsForm.ShowDialog();
                   //PrepareLookupFile();
 
                   if (printFilePath != null)
-                  {
+                        {
                         bomItems = GetItemsFromPL(printFilePath);
 
                         List<string> drawingPaths = new List<string>();
                         drawingPaths = GetDrawingPaths(bomItems, searchPathsForm.strFolderList);
 
                         PrintMissingFiles();
+                        }
                   }
-            }
 
             public void PrintMissingFiles()
-            {
+                  {
                   var missingDrawings = new frmMissingDwgs(bomItems, strProjName, printFilePath);
                   missingDrawings.ShowDialog();
                   SelectDrawings();
-            }
+                  }
 
             public void SelectDrawings()
-            {
+                  {
 
                   if (!IsMnfgPrint)
-                  {
+                        {
                         var drawingList = new frmSelectDrawings(bomItems, IsMnfgPrint);
 
                         // Open modeless else the drawing will not close after printing
                         drawingList.Show();
-                  }
+                        }
                   else
-                  {
+                        {
                         var drawingList = new frmSelectMnfgDwgs(bomItems, IsMnfgPrint, ProductionID, ProductionName, ProjectNumber, ProductionUUID);
 
                         // Open modeless else the drawing will not close after printing
                         drawingList.Show();
+                        }
                   }
-            }
 
             public void DrawingSearch()
-            {
+                  {
                   List<string> drawingPaths = new List<string>();
                   //drawingPaths = getDrawingPaths(7, "");
-            }
+                  }
 
             internal static string OpenPrintList()
-            {
+                  {
                   OpenFileDialog printFileOpen = new OpenFileDialog();
                   bool bExOccured = false;
                   DialogResult retVal;
@@ -184,7 +185,7 @@ namespace CADAutoPrintPlugin_2023
                   bool skipMe = false;
 
                   try
-                  {
+                        {
                         // Adds an extension to a file name if the user omits the extension
                         printFileOpen.AddExtension = true;
 
@@ -195,109 +196,109 @@ namespace CADAutoPrintPlugin_2023
 
                         retVal = printFileOpen.ShowDialog();
                         if (retVal == DialogResult.OK)
-                        {
+                              {
                               if (printFileOpen.CheckFileExists == true & printFileOpen.CheckPathExists == true)
                                     printListFile = printFileOpen.FileName;
+                              }
                         }
-                  }
                   catch (AccessViolationException ex1)
-                  {
+                        {
                         MessageBox.Show(ex1.StackTrace.ToString());
                         bExOccured = true;
-                  }
+                        }
                   catch (System.Exception ex)
-                  {
+                        {
                         MessageBox.Show(ex.StackTrace.ToString());
                         bExOccured = true;
-                  }
-                  finally
-                  {
-                        if (bExOccured == true)
-                        {
-                              MessageBox.Show("Program executed with some errors!!!");
                         }
-                  }
+                  finally
+                        {
+                        if (bExOccured == true)
+                              {
+                              MessageBox.Show("Program executed with some errors!!!");
+                              }
+                        }
 
                   return printListFile;
-            }
+                  }
 
             internal static string GetFolderPath()
-            {
+                  {
                   FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
                   bool bExOccured = false;
                   DialogResult retVal;
                   string chosenPath = "";
 
                   try
-                  {
+                        {
                         // Hides the New Folder creation button
                         folderBrowser.ShowNewFolderButton = false;
 
                         retVal = folderBrowser.ShowDialog();
                         if (retVal == DialogResult.OK)
-                        {
+                              {
                               chosenPath = folderBrowser.SelectedPath + "\\";
+                              }
                         }
-                  }
                   catch (AccessViolationException ex1)
-                  {
+                        {
                         MessageBox.Show(ex1.StackTrace.ToString());
                         bExOccured = true;
-                  }
+                        }
                   catch (System.Exception ex)
-                  {
+                        {
                         MessageBox.Show(ex.StackTrace.ToString());
                         bExOccured = true;
-                  }
-                  finally
-                  {
-                        if (bExOccured == true)
-                        {
-                              MessageBox.Show("Program executed with some errors!!!");
                         }
-                  }
+                  finally
+                        {
+                        if (bExOccured == true)
+                              {
+                              MessageBox.Show("Program executed with some errors!!!");
+                              }
+                        }
                   return chosenPath;
-            }
+                  }
 
             public List<BoMItem> GetItemsFromPL(string printFilePath)
-            {
+                  {
                   List<BoMItem> bomItems = new List<BoMItem>();
                   BoMItem bomItem = null/* TODO Change to default(_) if this is not a reference type */;
 
                   try
-                  {
+                        {
                         var workingList = new List<string>(); // Create new workingList to hold the lines
 
                         var fileStream = new FileStream(printFilePath, FileMode.Open, FileAccess.Read); // Create a new File Stream and open the Print List
                         using (var streamReader = new StreamReader(fileStream)) // Create a new Stream Reader to read the the Print List
-                        {
+                              {
                               string line = ""; // Clear the line
                               while (line != null) // While the Streamer is still reading
-                              {
+                                    {
                                     line = streamReader.ReadLine(); // Read the line into the line variable
                                     if (line != "") { workingList.Add(line); } // If the line is not empty add it to the workingList
+                                    }
                               }
-                        }
 
                         strProjName = GetProjectData(workingList[2], 2);
                         strProjNumber = GetProjectData(workingList[2], 0); // The Axapta item number for this Project
 
                         for (int i = 4; i <= workingList.Count - 1; i++) // Iterate the workingList from position 4 to the end
-                        {
-                              if (workingList[i] != null) // Check to see if the end of the workingList has been reached
                               {
+                              if (workingList[i] != null) // Check to see if the end of the workingList has been reached
+                                    {
                                     strWords = BreakLineDown(workingList[i]); // Break down the current line into an array of words
 
                                     if (strWords.Length < 5) // If the words are less than 9 then
-                                    {
+                                          {
                                           workingList.RemoveAt(i); // Remove the current line
                                           i--; // Decriment the current line by 1 because the current line was just deleted.
                                           continue;
-                                    }
+                                          }
                                     else
-                                    {
-                                          switch (strWords[0].ToUpper())
                                           {
+                                          switch (strWords[0].ToUpper())
+                                                {
                                                 case "COMP TYPE": // It is comp type
                                                       workingList.RemoveAt(i); // Remove the current line
                                                       i--; // Decriment the current line by 1 because the current line was just deleted.
@@ -323,22 +324,22 @@ namespace CADAutoPrintPlugin_2023
                                                       i--; // Decriment the current line by 1 because the current line was just deleted.
                                                       continue;
 
+                                                }
                                           }
-                                    }
 
                                     if (strWords[6] != "BOM")
-                                    {
+                                          {
                                           workingList.RemoveAt(i); // Remove the current line
                                           i--; // Decriment the current line by 1 because the current line was just deleted.
                                           continue;
+                                          }
                                     }
                               }
-                        }
 
                         for (int i = 4; i <= workingList.Count - 1; i++)// Iterate the new workingList from position 4 to the end
-                        {
-                              if (workingList[i] != null) // Check to see if the end of the workingList has been reached
                               {
+                              if (workingList[i] != null) // Check to see if the end of the workingList has been reached
+                                    {
                                     strWords = BreakLineDown(workingList[i]); // Break down the current line into an array of words
 
                                     bomItem = new BoMItem(); // Instantiate a new BoMItem
@@ -362,110 +363,110 @@ namespace CADAutoPrintPlugin_2023
                                     bomItem.Path = "";
 
                                     bomItems.Add(bomItem); // Add the BoMItem to the bomItems List
+                                    }
                               }
                         }
-                  }
                   catch (System.Exception ex)
-                  {
+                        {
                         throw new System.Exception(ex.Message);
-                  }
+                        }
                   return bomItems; // Return the List BoMItems
-            }
+                  }
 
             public List<string> GetDrawingPaths(List<BoMItem> bomItems, string[] searchPaths)
-            {
+                  {
                   List<string> drawingPaths = new List<string>();
                   List<string> tempList = new List<string>();
                   bool isStdDwg = true;
                   int itemNum = 0;
 
                   foreach (BoMItem bomItem in bomItems)
-                  {
-                        if (bomItem.CompType != "HDWKIT" && bomItem.CompType != "OBS" && !bomItem.CompType.StartsWith("X"))
                         {
+                        if (bomItem.CompType != "HDWKIT" && bomItem.CompType != "OBS" && !bomItem.CompType.StartsWith("X"))
+                              {
                               // Check if we have an item "number" for fast searches
                               try
-                              {
+                                    {
                                     itemNum = Convert.ToInt32(bomItem.PartNumber);
-                              }
+                                    }
                               catch
-                              {
+                                    {
                                     isStdDwg = false;
-                              }
+                                    }
 
                               // Do core search in S:\EID Drawings\Project Drawings for item drawing
                               // this should be very fast for standard items as it will search no more than 500 drawings
                               // non-standard items will search the entire directory tree (approx 136k drawings July 2011)
                               if (isStdDwg)
-                              {
-                                    if ((itemNum >= 10000 && itemNum < 2000000) || (itemNum >= 3000000 && itemNum < 4000000))
                                     {
+                                    if ((itemNum >= 10000 && itemNum < 2000000) || (itemNum >= 3000000 && itemNum < 4000000))
+                                          {
                                           string requestedPath = GetStdDwgPath(itemNum);
                                           try
-                                          {
-                                                if (System.IO.Directory.Exists(requestedPath))
                                                 {
+                                                if (System.IO.Directory.Exists(requestedPath))
+                                                      {
                                                       tempList.AddRange(System.IO.Directory.GetFiles(requestedPath, itemNum + ".dwg"));
                                                       bomItem.Path = requestedPath + itemNum + ".dwg";
                                                       bomItem.Status = "Drawing Found";
+                                                      }
+                                                }
+                                          catch
+                                                {
+
                                                 }
                                           }
-                                          catch
-                                          {
-
-                                          }
-                                    }
                                     else
-                                    {
+                                          {
                                           tempList.AddRange(System.IO.Directory.GetFiles("S:\\EID Drawings\\Project Drawings\\", itemNum + ".dwg"));
                                           bomItem.Path = "S:\\EID Drawings\\Project Drawings\\" + itemNum + ".dwg";
                                           bomItem.Status = "Drawing Found";
+                                          }
                                     }
-                              }
                               else
-                              {
+                                    {
                                     tempList.AddRange(System.IO.Directory.GetFiles("S:\\EID Drawings\\Project Drawings\\", itemNum + ".dwg"));
                                     bomItem.Path = "S:\\EID Drawings\\Project Drawings\\" + itemNum + ".dwg";
                                     bomItem.Status = "Drawing Found";
-                              }
+                                    }
 
                               int pathsToSearch = searchPaths.Count();
                               int intTemp = 0;
 
                               if (pathsToSearch == 1)
-                              {
+                                    {
                                     pathsToSearch = 1;
-                              }
+                                    }
                               else
-                              {
+                                    {
                                     pathsToSearch = pathsToSearch - 1;
                                     intTemp = 1;
-                              }
+                                    }
 
                               for (int i = intTemp; i < pathsToSearch; i++)
-                              {
-                                    if (System.IO.Directory.GetFiles(searchPaths[i], itemNum + ".dwg", SearchOption.AllDirectories).Length > 0)
                                     {
+                                    if (System.IO.Directory.GetFiles(searchPaths[i], itemNum + ".dwg", SearchOption.AllDirectories).Length > 0)
+                                          {
                                           tempList.AddRange(System.IO.Directory.GetFiles(searchPaths[i], itemNum + ".dwg", SearchOption.AllDirectories));
                                           bomItem.Path = tempList.LastOrDefault().ToString(); //searchPaths[i] + itemNum + ".dwg";
                                           bomItem.Status = "Drawing Found";
+                                          }
                                     }
-                              }
 
                               string strTestString = itemNum + ".dwg";
                               if (tempList.FirstOrDefault(stringToCheck => stringToCheck.Contains(strTestString)) == null)
-                              {
+                                    {
                                     tempList.Add("No Drawing Found for: " + strTestString);
                                     bomItem.Path = "";
                                     bomItem.Status = "No Drawing Found";
-                              }
+                                    }
 
                               tempList = tempList.Distinct().ToList();
 
                               var matchDrawings = tempList.Where(stringToCheck => stringToCheck.Contains(strTestString));
 
                               if (matchDrawings.Count() > 1)
-                              {
+                                    {
                                     frmDuplicateDrawings frmSelectDwg = new frmDuplicateDrawings();
 
                                     frmSelectDwg.duplicateFiles = matchDrawings.ToArray();
@@ -475,42 +476,42 @@ namespace CADAutoPrintPlugin_2023
 
                                     string[] tempDupFiles = matchDrawings.ToArray();
                                     foreach (string dupFile in tempDupFiles)
-                                    {
+                                          {
                                           tempList.Remove(dupFile);
-                                    }
+                                          }
 
                                     tempList.Add(selectedDuplicate.ToString());
                                     bomItem.Path = selectedDuplicate.ToString();
 
                                     //frmSelectDwg.Close();
+                                    }
                               }
                         }
-                  }
 
                   drawingPaths = tempList.Distinct().ToList();
 
                   return drawingPaths;
-            }
+                  }
 
             public string[] BreakLineDown(string line)
-            {
+                  {
                   string[] delimiterStrings = { "\t", "\t\t" };
                   line = line.Replace("\t\t", "\t-\t");
                   string[] words = line.Split(delimiterStrings, System.StringSplitOptions.RemoveEmptyEntries);
 
                   return words;
-            }
+                  }
 
             private string GetProjectData(string projLine, int intWord)
-            {
+                  {
                   strWords = BreakLineDown(projLine); // break the line down into words
                   strItemName = strWords[intWord];
 
                   return strItemName;
-            }
+                  }
 
             private string GetStdDwgPath(int itemNum)
-            {
+                  {
                   string stdPath = "S:\\EID Drawings\\Project Drawings\\";
 
                   string strItemRoot, strItemNumSub, strItemRemainderSub;
@@ -518,7 +519,7 @@ namespace CADAutoPrintPlugin_2023
                   string strItemNum = itemNum.ToString();
 
                   switch (strItemNum)
-                  {
+                        {
                         // 1000000 To 1999999
                         case string number when new Regex(@"100000[0-9]|10000[1-9][0-9]|1000[1-9][0-9]{2}|100[1-9][0-9]{3}|10[1-9][0-9]{4}|1[1-9][0-9]{5}").IsMatch(strItemNum):
 
@@ -529,13 +530,13 @@ namespace CADAutoPrintPlugin_2023
                               stdPath = stdPath + strItemRoot + "0000\\";
 
                               if (Convert.ToInt32(strItemRemainderSub) < 500)
-                              {
+                                    {
                                     stdPath += strItemRoot + strItemNumSub + "000-" + strItemRoot + strItemNumSub + "499\\";
-                              }
+                                    }
                               else
-                              {
+                                    {
                                     stdPath += strItemRoot + strItemNumSub + "500-" + strItemRoot + strItemNumSub + "999\\";
-                              }
+                                    }
 
                               break;
 
@@ -549,13 +550,13 @@ namespace CADAutoPrintPlugin_2023
                               stdPath += strItemRoot + "0000\\";
 
                               if (Convert.ToInt32(strItemRemainderSub) < 500)
-                              {
+                                    {
                                     stdPath += strItemRoot + strItemNumSub + "000-" + strItemRoot + strItemNumSub + "499\\";
-                              }
+                                    }
                               else
-                              {
+                                    {
                                     stdPath += strItemRoot + strItemNumSub + "500-" + strItemRoot + strItemNumSub + "999\\";
-                              }
+                                    }
 
                               break;
                         // 15000 To 999999
@@ -572,10 +573,10 @@ namespace CADAutoPrintPlugin_2023
 
                         default:
                               throw new ArgumentOutOfRangeException("Item Number", "The Item Number is out side the search parameters.");
-                  }
+                        }
 
                   return stdPath;
-            }
+                  }
 
             #region ZoomExtents
             //static void Zoom(Point3d pMin, Point3d pMax, Point3d pCenter, double dFactor)
@@ -718,7 +719,7 @@ namespace CADAutoPrintPlugin_2023
             #endregion
 
             public static void PrintDrawings(List<BoMItem> printItems)
-            {
+                  {
                   string strFileName = "";
                   DocumentCollection acDocMgr = CADApplication.DocumentManager;
                   Document acDoc = null;// = acDocMgr.MdiActiveDocument;
@@ -727,13 +728,13 @@ namespace CADAutoPrintPlugin_2023
                   PdfDocument outputDocument = new PdfDocument();
 
                   try
-                  {
-                        foreach (BoMItem item in printItems)
                         {
+                        foreach (BoMItem item in printItems)
+                              {
                               strFileName = item.Path;
 
                               if (File.Exists(strFileName))
-                              {
+                                    {
                                     // Open the drawing
                                     acDoc = acDocMgr.Open(strFileName, true);
 
@@ -752,11 +753,11 @@ namespace CADAutoPrintPlugin_2023
 
                                     // Subscribe to the docColDocAct event to detect when the drawing is activated
                                     acDocMgr.DocumentActivated += new DocumentCollectionEventHandler(DocColDocAct);
-                              }
+                                    }
                               else
-                              {
+                                    {
                                     acDocMgr.MdiActiveDocument.Editor.WriteMessage("File " + strFileName + " does not exist.");
-                              }
+                                    }
 
                               // Fill out the Title Block
                               FillTitleBlock(acDoc, strProjName, item.Qty, StrProjLead);
@@ -768,14 +769,14 @@ namespace CADAutoPrintPlugin_2023
                               acEd = acDoc.Editor;
 
                               try
-                              {
+                                    {
                                     // Close the drawing and discard any changes
                                     acDoc.CloseAndDiscard();
-                              }
+                                    }
                               catch (System.Exception ex)
-                              {
+                                    {
                                     acEd.WriteMessage(Environment.NewLine + ex.Source.ToString());
-                              }
+                                    }
 
                               // Get some file names
                               string[] pdfFile = Directory.GetFiles(Path.GetTempPath(), "*.pdf", SearchOption.TopDirectoryOnly);
@@ -795,7 +796,7 @@ namespace CADAutoPrintPlugin_2023
                               // Delete the file after adding to the output document.
                               File.Delete(pdfFile[0]);
 
-                        }
+                              }
                         // ----------------------------------------------------------------------------------------------------------------------
                         // Combine printed pdfs...
 
@@ -810,32 +811,32 @@ namespace CADAutoPrintPlugin_2023
 
                         // ---------------------------------------------------------------------------------------------------------------------
                         try
-                        {
-                              if (outputDocument.PageCount > 0)
                               {
+                              if (outputDocument.PageCount > 0)
+                                    {
                                     outputDocument.Save(filename);
                                     MessageBox.Show("Print package to PDf complete.", "Print Complete", MessageBoxButtons.OK); // Display a print complete message
-                              }
+                                    }
                               else
-                              {
+                                    {
                                     MessageBox.Show("There must be at least 1 page to combine.", "No Pages Found", MessageBoxButtons.OK);
-                              }
+                                    }
 
-                        }
+                              }
                         catch (System.Exception Printerror)
-                        {
+                              {
                               MessageBox.Show(Printerror.Message + "\n" + Printerror.StackTrace);
+                              }
                         }
-                  }
                   catch (System.Runtime.InteropServices.COMException ex)
-                  {
+                        {
                         // Log the error code
                         acEd.WriteMessage("\nError: COM exception ({0})", ex.ErrorCode.ToString("X"));
+                        }
                   }
-            }
 
             public static void PrintMnfgDrawings(System.Data.DataTable printTable, string strProjName, string strIssuedBy, string strIssueDate)
-            {
+                  {
                   string strFileName = "";
                   DocumentCollection acDocMgr = CADApplication.DocumentManager;
                   Document acDoc = null;// = acDocMgr.MdiActiveDocument;
@@ -844,13 +845,13 @@ namespace CADAutoPrintPlugin_2023
                   PdfDocument outputDocument = new PdfDocument();
 
                   try
-                  {
-                        foreach (System.Data.DataRow item in printTable.Rows)
                         {
+                        foreach (System.Data.DataRow item in printTable.Rows)
+                              {
                               strFileName = item["DRAWINGPATH"].ToString();
 
                               if (File.Exists(strFileName))
-                              {
+                                    {
                                     // Open the drawing
                                     acDoc = acDocMgr.Open(strFileName, true);
 
@@ -869,11 +870,11 @@ namespace CADAutoPrintPlugin_2023
 
                                     // Subscribe to the docColDocAct event to detect when the drawing is activated
                                     acDocMgr.DocumentActivated += new DocumentCollectionEventHandler(DocColDocAct);
-                              }
+                                    }
                               else
-                              {
+                                    {
                                     acDocMgr.MdiActiveDocument.Editor.WriteMessage("File " + strFileName + " does not exist.");
-                              }
+                                    }
 
                               // Fill out the Title Block
                               FillTitleBlock(acDoc, strProjName, Convert.ToInt32(item["QTY"]), strIssuedBy, strIssueDate, item["BARCODEID"].ToString(), item["PRODID"].ToString());
@@ -885,14 +886,14 @@ namespace CADAutoPrintPlugin_2023
                               acEd = acDoc.Editor;
 
                               try
-                              {
+                                    {
                                     // Close the drawing and discard any changes
                                     acDoc.CloseAndDiscard();
-                              }
+                                    }
                               catch (System.Exception ex)
-                              {
+                                    {
                                     acEd.WriteMessage(Environment.NewLine + ex.Source.ToString());
-                              }
+                                    }
 
                               // Get some file names
                               string[] pdfFile = Directory.GetFiles(Path.GetTempPath(), "*.pdf", SearchOption.TopDirectoryOnly);
@@ -912,7 +913,7 @@ namespace CADAutoPrintPlugin_2023
                               // Delete the file after adding to the output document.
                               File.Delete(pdfFile[0]);
 
-                        }
+                              }
                         // ----------------------------------------------------------------------------------------------------------------------
                         // Combine printed pdfs...
 
@@ -927,46 +928,46 @@ namespace CADAutoPrintPlugin_2023
 
                         // ---------------------------------------------------------------------------------------------------------------------
                         try
-                        {
-                              if (outputDocument.PageCount > 0)
                               {
+                              if (outputDocument.PageCount > 0)
+                                    {
                                     outputDocument.Save(filename);
                                     MessageBox.Show("Print package to PDF complete. File saved to C:\\Temp\\", "Print Complete", MessageBoxButtons.OK); // Display a print complete message
-                              }
+                                    }
                               else
-                              {
+                                    {
                                     MessageBox.Show("There must be at least 1 page to combine.", "No Pages Found", MessageBoxButtons.OK);
-                              }
+                                    }
 
-                        }
+                              }
                         catch (System.Exception Printerror)
-                        {
+                              {
                               MessageBox.Show(Printerror.Message + "\n" + Printerror.StackTrace);
+                              }
                         }
-                  }
                   catch (System.Runtime.InteropServices.COMException ex)
-                  {
+                        {
                         // Log the error code
                         acEd.WriteMessage("\nError: COM exception ({0})", ex.ErrorCode.ToString("X"));
+                        }
                   }
-            }
 
             private static void AcDoc_EndDwgOpen(object sender, EventArgs e)
-            {
+                  {
                   Document acDoc = (Document)sender;
                   Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog("Drawing " + acDoc.Name + " is fully loaded.");
                   acDoc.EndDwgOpen -= AcDoc_EndDwgOpen; // Unsubscribe from the event to avoid memory leaks
-            }
+                  }
 
             public static void DocColDocAct(object senderObj, DocumentCollectionEventArgs docColDocActEvtArgs)
-            {
+                  {
                   DocumentCollection acDocMgr = CADApplication.DocumentManager;
                   //Autodesk.AutoCAD.ApplicationServices.Application.ShowAlertDialog(docColDocActEvtArgs.Document.Name + " was activated.");
                   acDocMgr.DocumentActivated -= new DocumentCollectionEventHandler(DocColDocAct); // Unsubscribe from the event to avoid memory leaks
-            }
+                  }
 
             public static void FillTitleBlock(Document acDoc, string projName, int qty, string issuedBy, string issuedDate = "", string barCode = "", string prodID = "")
-            {
+                  {
                   // Lock the document to ensure no conurrency errors
                   acDoc.LockDocument();
 
@@ -976,32 +977,53 @@ namespace CADAutoPrintPlugin_2023
                   string plotOrient = blockName;
                   string plotRotation = "portrait";
 
-                  if (plotOrient.Contains("1185") || plotOrient.Contains("1117"))
-                  {
+                  //// Get the LL and UR node positions for Window selection
+                  //Point3d[] plotPoints = new Point3d[2];
+
+                  //plotPoints = GetPrintWindow(acDoc, false);
+
+                  if (plotOrient.Contains("1185"))  //  || plotOrient.Contains("1117")
+                        {
                         plotRotation = "landscape";
-                  }
+                        }
 
                   // Open a new Transaction
                   using (var acTrans = new OpenCloseTransaction())
-                  {
+                        {
                         // get the document database
                         Database acCurDb = acDoc.Database;
+
+                        // Get the LayerTable from the current database
+                        LayerTable lt = (LayerTable)acTrans.GetObject(acCurDb.LayerTableId, OpenMode.ForRead);
+
+                        string barcodeLayer = "";
+
+                        // Iterate through the LayerTable
+                        foreach (ObjectId layerId in lt)
+                              {
+                              LayerTableRecord ltr = (LayerTableRecord)acTrans.GetObject(layerId, OpenMode.ForRead);
+
+                              if (ltr.Name.ToLower().Contains("dim"))
+                                    {
+                                    barcodeLayer = ltr.Name;
+                                    }
+                              }
 
                         // get the database block table
                         BlockTable blkTable = (BlockTable)acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead);
 
                         // If the block table contains a block definitions named 'blockName'...
                         if (blkTable.Has(blockName))
-                        {
+                              {
                               // Open the block definition
                               BlockTableRecord acBlkTblRec = (BlockTableRecord)acTrans.GetObject(blkTable[blockName], OpenMode.ForWrite);
 
                               if (barCode != "")
-                              {
+                                    {
                                     TextStyleTable barcodeStyleTable = acTrans.GetObject(acDoc.Database.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
 
                                     if (!barcodeStyleTable.Has("Free 3 of 9"))  //The TextStyle is currently not in the database
-                                    {
+                                          {
                                           barcodeStyleTable.UpgradeOpen();
                                           TextStyleTableRecord barcodeStyleTableRecord = new TextStyleTableRecord();
                                           barcodeStyleTableRecord.FileName = "FREE3OF9.TTF";
@@ -1010,43 +1032,44 @@ namespace CADAutoPrintPlugin_2023
                                           //newTextStyleTableRecord.Font = myNewTextStyle;
                                           barcodeStyleTable.Add(barcodeStyleTableRecord);
                                           acTrans.AddNewlyCreatedDBObject(barcodeStyleTableRecord, true);
-                                    }
+                                          }
 
                                     // Create a single-line text object
                                     using (DBText acText = new DBText())
-                                    {
+                                          {
                                           if (plotRotation.Equals("landscape"))
-                                          {
-                                                acText.Position = new Point3d(.25, 7.8125, 0);
+                                                {
+                                                acText.Position = new Point3d(0.25, 7.8125, 0);
                                                 acText.Rotation = 0;
-                                          }
+                                                }
                                           else if (plotRotation.Equals("portrait"))
-                                          {
-                                                acText.Position = new Point3d(.25, .3125, 0);
+                                                {
+                                                acText.Position = new Point3d(0.25, 0.3125, 0);
                                                 acText.Rotation = 1.5708;
-                                          }
+                                                }
 
                                           acText.Height = 0.375;
                                           acText.TextString = "*" + barCode + "*"; // "Hello, World.";
                                           acText.TextStyleId = barcodeStyleTable["BARCODE"];
+                                          acText.Layer = barcodeLayer;
 
                                           acBlkTblRec.AppendEntity(acText);
                                           acTrans.AddNewlyCreatedDBObject(acText, true);
+                                          }
                                     }
-                              }
 
                               // Get the inserted block references ObjectIds
                               var objIds = acBlkTblRec.GetBlockReferenceIds(true, true);
 
                               // If any...
                               if (0 < objIds.Count)
-                              {
+                                    {
                                     // Open the first block reference
                                     BlockReference acBlkRef = (BlockReference)acTrans.GetObject(objIds[0], OpenMode.ForRead);
 
                                     // Iterate through the attribute collection
                                     foreach (ObjectId objId in acBlkRef.AttributeCollection)
-                                    {
+                                          {
                                           // Open the attribute reference
                                           AttributeReference attRef = (AttributeReference)acTrans.GetObject(objId, OpenMode.ForWrite);
 
@@ -1057,7 +1080,7 @@ namespace CADAutoPrintPlugin_2023
                                           string strTagValue = "";
 
                                           switch (strTagString)
-                                          {
+                                                {
                                                 case "PROJ_NO":
 
                                                       // Set the Project Tag value to the Project Name
@@ -1090,15 +1113,14 @@ namespace CADAutoPrintPlugin_2023
                                                 case "IDATE":
 
                                                       if (issuedDate == "")
-                                                      {
+                                                            {
                                                             // Set the Issued Date Tag value to todays date
                                                             strTagValue = DateTime.Now.ToString("dd MMM yyyy");
-                                                      }
+                                                            }
                                                       else
-                                                      {
+                                                            {
                                                             strTagValue = issuedDate;
-                                                      }
-
+                                                            }
 
                                                       break;
 
@@ -1115,11 +1137,11 @@ namespace CADAutoPrintPlugin_2023
                                                       strTagString = attRef.TextString;
 
                                                       break;
-                                          }
+                                                }
 
                                           // If the attribute tag is equal to 'tag'
                                           if (attRef.Tag.Equals(strTagString, StringComparison.CurrentCultureIgnoreCase))
-                                          {
+                                                {
                                                 // Update the value of the attribute
                                                 attRef.TextString = strTagValue;
 
@@ -1131,16 +1153,16 @@ namespace CADAutoPrintPlugin_2023
 
                                                 // Regenerate the drawing
                                                 ed.Regen();
-                                          }
+                                                }
 
+                                          }
                                     }
                               }
                         }
                   }
-            }
 
             public static string FindBlockName(Document doc)
-            {
+                  {
                   // Initialize the Title Blokc name to an empty string
                   string blockName = string.Empty;
 
@@ -1151,13 +1173,13 @@ namespace CADAutoPrintPlugin_2023
                   Transaction tr = db.TransactionManager.StartTransaction();
 
                   try
-                  {
+                        {
                         // Get the Block Table 
                         BlockTable bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
 
                         // Iterate through the block table
                         foreach (ObjectId btrId in bt)
-                        {
+                              {
                               // Get the Block Table Record ID from the Block Table Record
                               BlockTableRecord btr = (BlockTableRecord)tr.GetObject(btrId, OpenMode.ForRead);
 
@@ -1172,28 +1194,28 @@ namespace CADAutoPrintPlugin_2023
                                     name.Contains("8511ECI") ||
                                     name.Contains("1117ECI") ||
                                     name.Contains("1711ECI"))
-                              {
+                                    {
                                     blockName = name;
                                     break;
+                                    }
                               }
-                        }
 
                         // Commit the Transaction
                         tr.Commit();
-                  }
+                        }
                   catch (System.Exception ex)
-                  {
+                        {
                         // If there is a problem rollback the transaction
                         tr.Abort();
                         throw ex;
-                  }
+                        }
 
                   // Return the block name
                   return blockName;
-            }
+                  }
 
             public static void PrintToPDF(Document acDoc, string partNumber)
-            {
+                  {
                   // Used for error handling notification
                   Editor acEd = acDoc.Editor;
 
@@ -1210,10 +1232,15 @@ namespace CADAutoPrintPlugin_2023
                   string plotOrient = FindBlockName(acDoc);
                   string plotRotation = "portrait";
 
+                  // Get the LL and UR node positions for Window selection
+                  Point3d[] plotPoints = new Point3d[2];
+
+                  plotPoints = GetPrintWindow(acDoc);
+
                   if (plotOrient.Contains("1185") || plotOrient.Contains("1117"))
-                  {
+                        {
                         plotRotation = "landscape";
-                  }
+                        }
 
                   // The users default system based temp folder
                   string directory = Path.GetTempPath();
@@ -1223,7 +1250,7 @@ namespace CADAutoPrintPlugin_2023
 
                   // Start a Transaction
                   using (Transaction acTrans = acDb.TransactionManager.StartOpenCloseTransaction())
-                  {
+                        {
                         // We'll be plotting the current layout
                         BlockTableRecord currentSpace = (BlockTableRecord)acTrans.GetObject(acDb.CurrentSpaceId, OpenMode.ForRead);
                         Layout currLayout = (Layout)acTrans.GetObject(currentSpace.LayoutId, OpenMode.ForRead);
@@ -1236,14 +1263,19 @@ namespace CADAutoPrintPlugin_2023
                         PlotSettings plotSettings = new PlotSettings(currLayout.ModelType);
                         plotSettings.CopyFrom(currLayout);
 
+                        //// Set the plot window area using the points array
+                        //plotSettings.PlotWindowArea(plotPoints[0].X, plotPoints[0].Y, plotPoints[1].X, plotPoints[1].Y);
+
                         // The PlotSettingsValidator helps
                         // create a valid PlotSettings object
                         PlotSettingsValidator plotSettingsValidator = PlotSettingsValidator.Current;
                         PlotConfigManager.RefreshList(RefreshCode.All);
 
                         // Plot extents, scaled to fit, centred
-                        plotSettingsValidator.SetPlotType(plotSettings, Autodesk.AutoCAD.DatabaseServices.PlotType.Extents);
+                        plotSettingsValidator.SetPlotWindowArea(plotSettings, new Extents2d(plotPoints[0].X, plotPoints[0].Y, plotPoints[1].X, plotPoints[1].Y));
+                        plotSettingsValidator.SetPlotType(plotSettings, Autodesk.AutoCAD.DatabaseServices.PlotType.Window);
                         plotSettingsValidator.SetUseStandardScale(plotSettings, true);
+                        //plotSettingsValidator.SetCustomPrintScale(plotSettings, new CustomScale(8, 8.5));
                         plotSettingsValidator.SetStdScaleType(plotSettings, StdScaleType.ScaleToFit);
                         plotSettingsValidator.SetPlotCentered(plotSettings, true);
 
@@ -1252,12 +1284,12 @@ namespace CADAutoPrintPlugin_2023
 
                         // Populate the Plot Style variable with the Evans 2010 ctb
                         foreach (string plotStyle in PlotSettingsValidator.Current.GetPlotStyleSheetList())
-                        {
-                              if (plotStyle.Contains("EVANS_2010"))
                               {
+                              if (plotStyle.Contains("EVANS_2010"))
+                                    {
                                     strPlotStyle = plotStyle.ToString();
+                                    }
                               }
-                        }
 
                         // Use Microsoft Plot to PDF in Letter size for plotting to a file
                         plotSettingsValidator.SetPlotConfigurationName(plotSettings, "Microsoft Print to PDF", "Letter");
@@ -1274,10 +1306,10 @@ namespace CADAutoPrintPlugin_2023
 
                         // A PlotEngine does the actual plotting
                         if (PlotFactory.ProcessPlotState == ProcessPlotState.NotPlotting)
-                        {
+                              {
 
                               try
-                              {
+                                    {
                                     // Create a publish engine
                                     PlotEngine plotEngine = PlotFactory.CreatePublishEngine();
 
@@ -1314,36 +1346,165 @@ namespace CADAutoPrintPlugin_2023
                                     plotEngine.Destroy();
                                     plotEngine = null;
 
-                              }
+                                    }
                               catch (System.Exception error) { System.Exception Err = error; }
-                        }
+                              }
 
                         else
-                        {
+                              {
                               acEd.WriteMessage("\nAnother plot is in progress.");
-                        }
+                              }
 
                         // Wait for the plot to complete
                         while (PlotFactory.ProcessPlotState != ProcessPlotState.NotPlotting)
-                        {
+                              {
                               Thread.Sleep(100);
-                        }
+                              }
 
                         // Aborting = do not save changes
                         acTrans.Abort();
+                        }
                   }
-            }
+
+            public static Point3d[] GetPrintWindow(Document acDoc, bool printWindow = true)
+                  {
+                  Point3d[] points = new Point3d[2];
+                  Point3d llPoint = new Point3d();
+                  Point3d urPoint = new Point3d();
+
+                  // Lock the document to ensure no conurrency errors
+                  acDoc.LockDocument();
+
+                  // Get the full Title Block name
+                  string blockName = FindBlockName(acDoc);
+
+                  string plotOrient = blockName;
+                  string plotRotation = "portrait";
+
+                  if (plotOrient.Contains("1185") || plotOrient.Contains("1117"))
+                        {
+                        plotRotation = "landscape";
+                        }
+
+                  // Open a new Transaction
+                  using (var acTrans = new OpenCloseTransaction())
+                        {
+                        // get the document database
+                        Database acCurDb = acDoc.Database;
+
+                        // get the database block table
+                        BlockTable blkTable = (BlockTable)acTrans.GetObject(acCurDb.BlockTableId, OpenMode.ForRead);
+
+                        // If the block table contains a block definitions named 'blockName'...
+                        if (blkTable.Has(blockName))
+                              {
+                              // Open the block definition
+                              BlockTableRecord acBlkTblRec = (BlockTableRecord)acTrans.GetObject(blkTable[blockName], OpenMode.ForWrite);
+
+                              // Get the inserted block references ObjectIds
+                              var objIds = acBlkTblRec.GetBlockReferenceIds(true, true);
+
+                              // If any...
+                              if (0 < objIds.Count)
+                                    {
+                                    // Open the first block reference
+                                    BlockReference acBlkRef = (BlockReference)acTrans.GetObject(objIds[0], OpenMode.ForRead);
+
+                                    Scale3d blkScale = acBlkRef.ScaleFactors;
+
+                                    // Declare variables to store the LL & UR Nodes
+                                    AttributeReference llNode = null;
+                                    AttributeReference urNode = null;
+
+                                    // Iterate through the attribute collection
+                                    foreach (ObjectId objId in acBlkRef.AttributeCollection)
+                                          {
+                                          // Open the attribute reference
+                                          AttributeReference attRef = (AttributeReference)acTrans.GetObject(objId, OpenMode.ForRead);
+
+                                          if (attRef.Tag == "LL")
+                                                {
+                                                // Assign the attribute reference to the LL Node variable
+                                                llNode = attRef;
+                                                }
+
+                                          if (attRef.Tag == "UR")
+                                                {
+                                                // Assign the attribute reference to the LL Node variable
+                                                urNode = attRef;
+                                                }
+
+                                          // Get the Attribute Tag name and store it in a variable
+                                          string strTagString = attRef.Tag.ToString().ToUpper();
+
+                                          if (llNode != null && urNode != null)
+                                                {
+                                                // Get the location of the LL && UR nodes.
+                                                llPoint = llNode.Position;
+                                                urPoint = urNode.Position;
+
+                                                Point3d adjLL = new Point3d(0, 0, 0);
+                                                Point3d adjUR = new Point3d(0, 0, 0);
+
+                                                if (printWindow)
+                                                      {
+                                                      if (plotRotation == "portrait")
+                                                            {
+                                                            adjLL = new Point3d(llPoint.X - (0.28125 * blkScale[0]), llPoint.Y - (0.25 * blkScale[0]), 0);
+                                                            adjUR = new Point3d(urPoint.X + (0.21875 * blkScale[0]), urPoint.Y + (0.25 * blkScale[0]), 0);
+                                                            }
+
+                                                      if (plotRotation == "landscape")
+                                                            {
+                                                            adjLL = new Point3d(llPoint.X - (0.25 * blkScale[0]), llPoint.Y - (0.25 * blkScale[0]), 0);
+                                                            adjUR = new Point3d(urPoint.X + (0.25 * blkScale[0]), urPoint.Y + (0.28125 * blkScale[0]), 0);
+                                                            }
+                                                      }
+                                                else
+                                                      {
+                                                      if (plotRotation == "portrait")
+                                                            {
+                                                            adjLL = new Point3d(llPoint.X, llPoint.Y, 0);
+                                                            adjUR = new Point3d(urPoint.X, urPoint.Y, 0);
+                                                            }
+
+                                                      if (plotRotation == "landscape")
+                                                            {
+                                                            adjLL = new Point3d(llPoint.X, llPoint.Y, 0);
+                                                            adjUR = new Point3d(urPoint.X, urPoint.Y, 0);
+                                                            }
+                                                      }
+
+
+                                                points[0] = adjLL;
+                                                points[1] = adjUR;
+                                                }
+
+                                          // Commit the transaction
+                                          acTrans.Commit();
+
+                                          // Get the editor object
+                                          Editor ed = acDoc.Editor;
+
+                                          // Regenerate the drawing
+                                          ed.Regen();
+                                          }
+                                    }
+                              }
+                        }
+                  return points;
+                  }
 
             public static string DataTableToJSONAsc(List<BoMItem> bomItems)
-            {
+                  {
                   string BoMlist = string.Empty;
                   BoMlist = JsonConvert.SerializeObject(bomItems, Formatting.Indented);
 
                   return BoMlist;
-            }
+                  }
 
             public void AddBoMTodB(List<BoMItem> printItems)
-            {
+                  {
                   int BoMId = dBHelper.GetBoMIDByProjectNumber(strProjNumber);
 
                   // Create the JSON files
@@ -1381,7 +1542,7 @@ namespace CADAutoPrintPlugin_2023
                   UserName = UserName.ToLower();
 
                   if (BoMId > 0)
-                  {
+                        {
                         Success = (bool)dBHelper.UpdateDesignBoM(BoMId,
                             UserName,
                             ProjectID,
@@ -1393,25 +1554,25 @@ namespace CADAutoPrintPlugin_2023
                             ProjectStructured);
 
                         if (!Success)
-                        {
+                              {
                               MessageBox.Show("There was an issue updating this BoM in the Database.");
-                        }
+                              }
                         else
-                        {
+                              {
                               MessageBox.Show("The BoM was updated in the Database.");
 
                               if (!dBHelper.UpdateProject(ProjectNumber, UserName, BoMId))
-                              {
+                                    {
                                     MessageBox.Show("There was an issue updating this Project in the Database.");
-                              }
+                                    }
                               else
-                              {
+                                    {
                                     MessageBox.Show("The Project was updated in the Database.");
+                                    }
                               }
                         }
-                  }
                   else
-                  {
+                        {
                         int BoMID = (int)dBHelper.AddNewDesignBoM(UserName,
                         ProjectID,
                         ProjectName,
@@ -1422,24 +1583,24 @@ namespace CADAutoPrintPlugin_2023
                         ProjectStructured);
 
                         if (BoMID == 0)
-                        {
+                              {
                               MessageBox.Show("There was an issue adding this Design BoM to the Database.");
-                        }
+                              }
                         else
-                        {
+                              {
                               MessageBox.Show("The Design BoM has been added to the Database.");
 
                               if (!dBHelper.AddNewProject(ProjectNumber, UserName, 9999, BoMID, ProjectName))
-                              {
+                                    {
                                     MessageBox.Show("There was an issue adding this Project to the Database.");
-                              }
+                                    }
                               else
-                              {
+                                    {
                                     MessageBox.Show("The Project was added to the Database.");
+                                    }
                               }
                         }
                   }
-            }
 
             //internal static void Cancel()
             //{
@@ -1448,7 +1609,7 @@ namespace CADAutoPrintPlugin_2023
             //}
 
             public static void CancelSelect()
-            {
+                  {
                   // ***************************************
                   // ***** gracefully quit the program *****
                   // ***************************************
@@ -1482,7 +1643,7 @@ namespace CADAutoPrintPlugin_2023
                   //frmProgress.Close(); // unload the progress dialog box
 
                   //System.Environment.Exit(0); // quit
-            }
+                  }
 
+            }
       }
-}

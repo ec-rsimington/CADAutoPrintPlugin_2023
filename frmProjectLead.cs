@@ -34,6 +34,7 @@ namespace CADAutoPrintPlugin_2023
                   get { return _isMnfgPrint; }
                   set { _isMnfgPrint = value; }
             }
+
             public frmProjectLead()
             {
                   InitializeComponent();

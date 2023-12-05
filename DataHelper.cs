@@ -483,6 +483,39 @@ namespace CADAutoPrintPlugin_2023
                   return dt;
             }
 
+            public DataTable GetAllProductionItemsByUUIDByProdRev(string UUID, string prodRev)
+                  {
+                  System.Data.SqlClient.SqlCommand cmd = new System.Data.SqlClient.SqlCommand();
+                  System.Data.SqlClient.SqlConnection conn = sqlAPIConnection();
+                  DataTable dt = new DataTable();
+
+                  conn.Open();
+                  cmd = new SqlCommand("GetProductionItemsUuid", conn);
+                  cmd.CommandType = CommandType.StoredProcedure;
+                  using (SqlDataAdapter sda = new SqlDataAdapter(cmd))
+                        {
+                        sda.SelectCommand.CommandTimeout = 0;
+                        try
+                              {
+                              cmd.Parameters.Add(new SqlParameter("@uuid", UUID));
+                              cmd.Parameters.Add(new SqlParameter("@prodRev", prodRev));
+                              sda.Fill(dt);
+                              }
+                        catch /*(Exception getdataError)*/
+                              {
+
+                              }
+                        finally
+                              {
+                              if (conn != null)
+                                    {
+                                    conn.Close();
+                                    }
+                              }
+                        }
+                  return dt;
+                  }
+
             public string GetBarcode(string productionid, string partnumber, string rev, string AreaID)
             {
                   string barcodeID = "";
@@ -518,5 +551,44 @@ namespace CADAutoPrintPlugin_2023
                   }
                   return barcodeID;
             }
-      }
+
+            public string GetBarcodeByProdRev(string productionid, string partnumber, string rev, string AreaID, string prodRev)
+                  {
+                  string barcodeID = "";
+                  System.Data.SqlClient.SqlConnection conn = sqlAPIConnection();
+                  SqlDataReader rdr = null;
+
+                  try
+                        {
+                        conn.Open();
+                        SqlCommand cmd = new SqlCommand("GetBarcodeByProdRev", conn);
+                        cmd.CommandType = CommandType.Text;
+
+                        cmd.Parameters.Add(new SqlParameter("@production", productionid));
+                        cmd.Parameters.Add(new SqlParameter("@partnumber", partnumber));
+                        cmd.Parameters.Add(new SqlParameter("@rev", rev));
+                        cmd.Parameters.Add(new SqlParameter("@dataAreaId", AreaID));
+                        cmd.Parameters.Add(new SqlParameter("@prodRev", prodRev));
+
+                        rdr = cmd.ExecuteReader();
+
+                        while (rdr.Read())
+                              {
+                              barcodeID = rdr["BARCODEID"].ToString();
+                              }
+                        }
+                  finally
+                        {
+                        if (conn != null)
+                              {
+                              conn.Close();
+                              }
+                        if (rdr != null)
+                              {
+                              rdr.Close();
+                              }
+                        }
+                  return barcodeID;
+                  }
+            }
 }
